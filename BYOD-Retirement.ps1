@@ -1,9 +1,16 @@
+[CmdletBinding()]
+Param()
+
 Import-Module ActiveDirectory, MSOnline
 
-$ScriptPath   = (Split-Path $MyInvocation.MyCommand.Path)
+$ScriptPath = (Split-Path $MyInvocation.MyCommand.Path)
 $Config = Import-PowerShellDataFile -Path $ScriptPath\BYOD-config.psd1
 $Time   = $Config.RetireTime
-$SkuID  = $Config.MsolLicense
+$MsolSkuID   = $Config.MsolParam.MsolLicense
+$UserName    = $Config.MsolParam.MsolUser
+$AESKeyFile  = $Config.MsolParam.AESKeyFile
+$SStringFile = $Config.MsolParam.SStringFile
+
 Function Invoke-SqlQuery{    
     Param(            
         [String]$ServerName,
@@ -114,7 +121,7 @@ Function Set-ByodRetirement{
 
 Function Remove-ByodRecord{
     Param(
-        $NumOfDays = $Config.SQLParam.$NumOfDays
+        $NumOfDays = $Config.SQLParam.NumOfDays
     )   
 
     $CommandParam = @{
@@ -123,6 +130,18 @@ Function Remove-ByodRecord{
         Command    = "Delete FROM BYOD_Retirement_Audit WHERE User_Expiry_Date < (SELECT dateadd(dd,$($NumOfDays),getdate()))"
     }
     Invoke-SqlCommand @CommandParam
+}
+
+Function New-PSCredential{
+    [OutputType([PSCredential])]
+    Param(
+        [Parameter(Mandatory)][String]$UserName,
+        [Parameter(Mandatory)][String]$EncryptedFilePath,
+        [Parameter(Mandatory)][String]$AESKeyFilePath        
+    )
+    $EncryptedString = Get-Content $EncryptedFilePath
+    $Key = Get-Content $AESKeyFilePath
+    Return (New-Object -TypeName System.Management.Automation.PSCredential($UserName,($EncryptedString | ConvertTo-SecureString -Key $Key)))
 }
 
 Function Send-ReminderEmail{
@@ -151,31 +170,37 @@ Function Send-ReminderEmail{
     
     Send-MailMessage @EmailParam
 }
-#Get the Key and secure string and build the credential
-#$Credential = New-Object System.Management.Automation.PSCredential($UserName,$Password)
 
-#Sign into Office 365 via PowerShell
+#region Controller Script Main()
+
+Write-Verbose "Signing in to Office 365 via PowerShell..."
+$Credential  = New-PSCredential -UserName $UserName -EncryptedFilePath (Convert-Path $SStringFile) -AESKeyFilePath (Convert-Path $AESKeyFile)
 Connect-MsolService -Credential $Credential
-#Get expiring users
+
+Write-Verbose "Retrieving expiring users from local AD..."
 $ExpiringUsers = Search-ADAccount -AccountExpiring
-#Get Byod Users out of expiring users
+
+Write-Verbose "Bringing BYOD Users out of expiring users..."
 $IntuneUsers = Foreach($User in $ExpiringUsers){
-                $IsLicensed = Get-MsolUser -UserPrincipalName $User.UserPrincipalName | Where-Object {$_.isLicensed -eq $true -and $_.Licenses.AccountSkuID -eq $SkuID}
+                $IsLicensed = Get-MsolUser -UserPrincipalName $User.UserPrincipalName | Where-Object {$_.isLicensed -eq $true -and $_.Licenses.AccountSkuID -eq $MsolSkuID}
                 If ($IsLicensed){            
                     New-Object PSObject -Property @{
                         UPN        = $User.UserPrincipalName
-                        FullName   = (Get-AdUser $User.Name -Properties DisplayName).DisplayName
-                        ExpiryDate = (Get-Date $User.AccountExpirationDate).AddSeconds(-1)                        
+                        FullName   = (Get-AdUser $($User.Name) -Properties DisplayName).DisplayName
+                        ExpiryDate = (Get-Date $($User.AccountExpirationDate)).AddSeconds(-1)                        
                     }               
                 }
 }
 
 #Remove the records with expiry date older than 90 days from the database table
+Write-Verbose "Cleaning up the BYOD database with expiry date older than 90 days..."
 Remove-ByodRecord
 
 #Extract the user list from the database and save it to a variable
+Write-Verbose "Getting the existing users list from the BYOD Database..."
 $ByodTable = (Get-ByodTable)
 
+Write-Verbose "Going through each user with Intune License"
 Foreach($ByodUser in $IntuneUsers){
     #Check if the ByodUser is in the database
     If($ByodTable.User_Principal_Name -contains $ByodUser.UPN){
@@ -183,23 +208,35 @@ Foreach($ByodUser in $IntuneUsers){
         $EmailSent = $ByodTable | Where-Object {$_.User_Principal_Name -like $ByodUser.UPN} | Select-Object -ExpandProperty Email_Sent_Flag
         If($EmailSent -Contains 'N'){
             #Send an email to IS Support
-            $ShortDate = (Get-Date $BoydUser.ExpiryDate).ToShortDateString()            
+            If ($BoydUser.ExpiryDate){
+                $ShortDate = (Get-Date $($BoydUser.ExpiryDate)).ToShortDateString()   
+            }
+            Else {
+                $ShortDate = (Get-Date '1753-01-01 00:00:00').ToShortDateString()    
+            }
+            
+            Write-Verbose "Sending reminder email for $($BoydUser.FullName) with Email_Sent_Flag set to N..."
             Send-ReminderEmail -FullName $($BoydUser.FullName) -UPN $($ByodUser.UPN) -ShortDate $ShortDate -Time $Time       
 
-            #Update the Database Table            
+            Write-Verbose "Updating the Database Table to set Email_Sent_Flag to Y..."            
             Set-ByodRetirement -UPN $($ByodUser.UPN) -EmailFlag 'Y' -EmailSentDate (Get-Date)
         }
     }
     #If ByodUser is Not in the database
     #Send an email to issupport and Insert a new record
     Else{
-        $ShortDate = (Get-Date $BoydUser.ExpiryDate).ToShortDateString()        
+        If ($BoydUser.ExpiryDate){
+            $ShortDate = (Get-Date $($BoydUser.ExpiryDate)).ToShortDateString()   
+        }
+        Else {
+            $ShortDate = (Get-Date '1753-01-01 00:00:00').ToShortDateString()    
+        }        
 
-        #Send an email to IS Support
+        Write-Verbose "Send a new reminder email for user $($BoydUser.FullName)..."
         Send-ReminderEmail -FullName $($BoydUser.FullName) -UPN $($ByodUser.UPN) -ShortDate $ShortDate -Time $Time
-        #INSERT a new record in the Database 
+        Write-Verbose "Insert a new record in the Database for $($BoydUser.FullName)..." 
         New-ByodRetirement -UPN $($ByodUser.UPN) -ExpiryDate $($ByodUser.ExpiryDate) -EmailFlag 'Y' -EmailSentDate (Get-Date)
     }
-
 }
 
+#endregion

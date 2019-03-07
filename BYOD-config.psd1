@@ -1,12 +1,18 @@
 @{
     Description = "Configuration data file for BYOD-Retirement.ps1"
     RetireTime  = "5:12 PM"
-    MsolLicense = "britishmuseum:INTUNE_A_VL"
-
+    
     SQLParam = @{
         ServerName = 'Dev-SQL-02'
         Database   = 'BYOD_Retirement'
         NumOfDays  = -90
+    }
+
+    MsolParam = @{        
+        MsolUser    = 'svcBYODCheck@britishmuseum.org'
+        AESKeyFile  = '.\Encstr\svcBYOD-AES.key'
+        SStringFile = '.\Encstr\svcBYOD-SS.txt'
+        MsolLicense = 'britishmuseum:INTUNE_A_VL'
     }
 
     EmailParam = @{
