@@ -1,29 +1,29 @@
 @{
     Description = "Configuration data file for BYOD-Retirement.ps1"
-    RetireTime  = "5:12 PM"
+    RetireTime  = "5:29 PM"
     
     SQLParam = @{
-        ServerName = 'Dev-SQL-02'
-        Database   = 'BYOD_Retirement'
+        ServerName = 'SqlServer'
+        Database   = 'BYOD_Database'
         NumOfDays  = -90
     }
 
     MsolParam = @{        
-        MsolUser    = 'svcBYODCheck@britishmuseum.org'
+        MsolUser    = 'svcBYODCheck@mycompany.com'
         AESKeyFile  = '.\Encstr\svcBYOD-AES.key'
         SStringFile = '.\Encstr\svcBYOD-SS.txt'
-        MsolLicense = 'britishmuseum:INTUNE_A_VL'
+        MsolLicense = 'mycompany:INTUNE_A_VL'
     }
 
     EmailParam = @{
-        From    = 'nawn@britishmuseum.org'
-        To      = 'nawn@britishmuseum.org','issupport@britishmuseum.org'
+        From    = 'naw.awn@mycompany.com'
+        To      = 'naw.awn@mycompany.com','itsupport@mycompany.com'
         Subject = 'Action Required - Retire BYOD mobile phone'
         Body    = "Dear ISSupport <br/><br/> 
-                  {FullName} ({UserPrincipalName}) is leaving the Museum on {ShortDate} and is signed up for BYOD service. Please remove the Museum's data on the user's device on {ShortDate} at {Time}.
+                  {FullName} ({UserPrincipalName}) is leaving the Company on {ShortDate} and is signed up for BYOD service. Please remove the Company data on the user's device on {ShortDate} at {Time}.
                   <br/><br/>Regards"
         BodyAsHtml = $true
-        SmtpServer = 'blm-exc-03.adbm.britishmuseum.org'
+        SmtpServer = 'exchangeserver.mycompany.com'
         Priority   = 'High'
     }
 }
