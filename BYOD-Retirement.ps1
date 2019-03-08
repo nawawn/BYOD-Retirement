@@ -59,7 +59,7 @@ Function Invoke-SqlCommand{
 }
 
 #################################################################################
-#  Single quote are sensitive inside SQL SELECT INSERT UPDATE DELETE Statement  #
+#  Single quotes are sensitive inside SQL SELECT INSERT UPDATE DELETE Statement  #
 
 Function Get-ByodTable{
     $QueryParam = @{
