@@ -194,7 +194,7 @@ $IntuneUsers = Foreach($User in $ExpiringUsers){
 
 #Remove the records with expiry date older than 90 days from the database table
 Write-Verbose "Cleaning up the BYOD database with expiry date older than 90 days..."
-Remove-ByodRecord
+Remove-ByodRecord | Out-Null
 
 #Extract the user list from the database and save it to a variable
 Write-Verbose "Getting the existing users list from the BYOD Database..."
@@ -208,15 +208,15 @@ Foreach($ByodUser in $IntuneUsers){
         $EmailSent = $ByodTable | Where-Object {$_.User_Principal_Name -like $ByodUser.UPN} | Select-Object -ExpandProperty Email_Sent_Flag
         If($EmailSent -Contains 'N'){
             #Send an email to IS Support
-            If ($BoydUser.ExpiryDate){
-                $ShortDate = (Get-Date $($BoydUser.ExpiryDate)).ToShortDateString()   
+            If ($ByodUser.ExpiryDate){
+                $ShortDate = (Get-Date $($ByodUser.ExpiryDate)).ToShortDateString()   
             }
             Else {
                 $ShortDate = (Get-Date '1753-01-01 00:00:00').ToShortDateString()    
             }
             
-            Write-Verbose "Sending reminder email for $($BoydUser.FullName) with Email_Sent_Flag set to N..."
-            Send-ReminderEmail -FullName $($BoydUser.FullName) -UPN $($ByodUser.UPN) -ShortDate $ShortDate -Time $Time       
+            Write-Verbose "Sending reminder email for $($ByodUser.FullName) with Email_Sent_Flag set to N..."
+            Send-ReminderEmail -FullName $($ByodUser.FullName) -UPN $($ByodUser.UPN) -ShortDate $ShortDate -Time $Time       
 
             Write-Verbose "Updating the Database Table to set Email_Sent_Flag to Y..."            
             Set-ByodRetirement -UPN $($ByodUser.UPN) -EmailFlag 'Y' -EmailSentDate (Get-Date)
@@ -225,18 +225,18 @@ Foreach($ByodUser in $IntuneUsers){
     #If ByodUser is Not in the database
     #Send an email to issupport and Insert a new record
     Else{
-        If ($BoydUser.ExpiryDate){
-            $ShortDate = (Get-Date $($BoydUser.ExpiryDate)).ToShortDateString()   
+        If ($ByodUser.ExpiryDate){
+            $ShortDate = (Get-Date $($ByodUser.ExpiryDate)).ToShortDateString()   
         }
         Else {
             $ShortDate = (Get-Date '1753-01-01 00:00:00').ToShortDateString()    
         }        
 
-        Write-Verbose "Send a new reminder email for user $($BoydUser.FullName)..."
-        Send-ReminderEmail -FullName $($BoydUser.FullName) -UPN $($ByodUser.UPN) -ShortDate $ShortDate -Time $Time
-        Write-Verbose "Insert a new record in the Database for $($BoydUser.FullName)..." 
+        Write-Verbose "Send a new reminder email for user $($ByodUser.FullName)..."
+        Send-ReminderEmail -FullName $($ByodUser.FullName) -UPN $($ByodUser.UPN) -ShortDate $ShortDate -Time $Time
+        Write-Verbose "Insert a new record in the Database for $($ByodUser.FullName)..." 
         New-ByodRetirement -UPN $($ByodUser.UPN) -ExpiryDate $($ByodUser.ExpiryDate) -EmailFlag 'Y' -EmailSentDate (Get-Date)
     }
 }
 
-#endregion
+#endregion Controller Script
