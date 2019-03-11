@@ -86,8 +86,8 @@ Function New-ByodRetirement{
         [DateTime]$EmailSentDate
     )
     $CommandParam = @{
-        ServerName = 'Dev-sql-02'
-        Database   = 'BYOD_Retirement'
+        ServerName = $Config.SQLParam.ServerName
+        Database   = $Config.SQLParam.Database
         Command    = "INSERT INTO BYOD_Retirement_Audit (User_Principal_Name, User_Expiry_Date, Email_Sent_Flag, Email_Sent_Date)
                       VALUES('$($UPN)','$($ExpiryDate)','$($EmailFlag)','$($EmailSentDate)')"
 
