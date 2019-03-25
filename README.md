@@ -1,5 +1,3 @@
-### BYOD-Retirement
-
 ![FlowChart](/images/ByodRetire.png)
 __Prerequisites for the process to run__
 * Needs an SQL Database
