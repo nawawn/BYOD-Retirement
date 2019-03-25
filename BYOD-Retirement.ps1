@@ -1,7 +1,7 @@
 [CmdletBinding()]
 Param()
 
-Import-Module ActiveDirectory, MSOnline
+#Requires -Module ActiveDirectory, MSOnline
 
 $ScriptPath = (Split-Path $MyInvocation.MyCommand.Path)
 $Config = Import-PowerShellDataFile -Path $ScriptPath\BYOD-config.psd1
