@@ -1,5 +1,5 @@
 ![FlowChart](/images/ByodRetire.png)
-__Prerequisites for the process to run__
+### Prerequisites for the process to run
 * Needs an SQL Database
 * Minimum Database user role: db_datawriter
 * Needs a standard office365 user to retrieve the Licence status
