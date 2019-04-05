@@ -19,7 +19,7 @@
         From    = 'naw.awn@mycompany.com'
         To      = 'naw.awn@mycompany.com','itsupport@mycompany.com'
         Subject = 'Action Required - Retire BYOD mobile phone'
-        Body    = "Dear ISSupport <br/><br/> 
+        Body    = "Dear IT Support <br/><br/> 
                   {FullName} ({UserPrincipalName}) is leaving the Company on {ShortDate} and is signed up for BYOD service. Please remove the Company data on the user's device on {ShortDate} at {Time}.
                   <br/><br/>Regards"
         BodyAsHtml = $true
