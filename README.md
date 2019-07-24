@@ -1,5 +1,5 @@
 ![FlowChart](/images/ByodRetire.png)
-[Watch Demo here](https://youtu.be/xBoinVvhEoY)
+[Watch Demo on YouTube](https://youtu.be/xBoinVvhEoY)
 #### Prerequisites for the process to run
 * Needs an SQL Database
 * Minimum Database user role: db_datawriter
