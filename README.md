@@ -1,5 +1,5 @@
-[Watch Demo here](<iframe width="560" height="315" src="https://www.youtube-nocookie.com/embed/xBoinVvhEoY" frameborder="0" allow="accelerometer; autoplay; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>)
 ![FlowChart](/images/ByodRetire.png)
+[Watch Demo here](https://youtu.be/xBoinVvhEoY)
 #### Prerequisites for the process to run
 * Needs an SQL Database
 * Minimum Database user role: db_datawriter
