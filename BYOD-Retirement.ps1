@@ -11,7 +11,7 @@ $UserName    = $Config.MsolParam.MsolUser
 $AESKeyFile  = $Config.MsolParam.AESKeyFile
 $SStringFile = $Config.MsolParam.SStringFile
 
-Function Invoke-SqlQuery{    
+Function Invoke-SqlQuery{
     Param(            
         [String]$ServerName,
         [String]$Database,
@@ -36,7 +36,7 @@ Function Invoke-SqlQuery{
     End{}
 }
 
-Function Invoke-SqlCommand{    
+Function Invoke-SqlCommand{
     Param(            
         [String]$ServerName,
         [String]$Database,
@@ -59,7 +59,7 @@ Function Invoke-SqlCommand{
 }
 
 #################################################################################
-#  Single quotes are sensitive inside SQL SELECT INSERT UPDATE DELETE Statement  #
+#  Single quotes are sensitive inside SQL SELECT INSERT UPDATE DELETE Statement #
 
 Function Get-ByodTable{
     $QueryParam = @{
@@ -154,9 +154,9 @@ Function Send-ReminderEmail{
 
     [String]$Body = $Config.EmailParam.Body | Out-String
     $Body = $Body.replace("{FullName}",$FullName).
-        replace("{UserPrincipalName}",$UPN). 
-        replace("{ShortDate}",$ShortDate).
-        replace("{Time}",$Time)
+                replace("{UserPrincipalName}",$UPN). 
+                replace("{ShortDate}",$ShortDate).
+                replace("{Time}",$Time)
 
     $EmailParam = @{
         From       = $Config.EmailParam.From
@@ -178,7 +178,7 @@ $Credential  = New-PSCredential -UserName $UserName -EncryptedFilePath (Convert-
 Connect-MsolService -Credential $Credential
 
 Write-Verbose "Retrieving expiring users from local AD..."
-$ExpiringUsers = Search-ADAccount -AccountExpiring
+$ExpiringUsers = Search-ADAccount -AccountExpiring -TimeSpan
 
 Write-Verbose "Bringing BYOD Users out of expiring users..."
 $IntuneUsers = Foreach($User in $ExpiringUsers){
@@ -193,6 +193,7 @@ $IntuneUsers = Foreach($User in $ExpiringUsers){
 }
 
 #Remove the records with expiry date older than 90 days from the database table
+#[Math]::abs($($Config.SQLParam.NumOfDays))
 Write-Verbose "Cleaning up the BYOD database with expiry date older than 90 days..."
 Remove-ByodRecord | Out-Null
 
