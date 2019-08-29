@@ -1,5 +1,7 @@
-![FlowChart](/images/ByodRetire.png)
-[Watch Demo on YouTube](https://youtu.be/xBoinVvhEoY)
+### BYOD Retirement  
+[Watch Demo on YouTube](https://youtu.be/xBoinVvhEoY)  
+
+![FlowChart](/images/ByodRetire.png)  
 #### Prerequisites for the process to run
 * Needs an SQL Database
 * Minimum Database user role: db_datawriter
@@ -12,4 +14,3 @@ __How To Deploy__
 4. Create the key and secure string for standard office365 user's password using New-AESencryption.ps1 from InfraScripts Repo and place them inside the subfolder created.
 5. Update the data on BYOD-config.psd1 as required.
 6. Create a scheduled task to run the BYOD-Retiremnet.ps1 PowerShell script.
-
